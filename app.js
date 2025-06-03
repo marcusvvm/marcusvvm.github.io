@@ -79,6 +79,12 @@ function processarDados() {
   dadosCombinados = criarDadosCompletos();
   aplicarFiltros();          // popula dadosFiltrados e a tabela
 }
+function formatSigned(v, dec = 0) {
+  const n = typeof v === "number" ? v : parseFloat(String(v).replace(/,/, "."));
+  const str = Math.abs(n).toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  return (n > 0 ? "+" : n < 0 ? "-" : "") + str;
+}
+
 
 /* =========================================================
  *  FILTRO DE MUNICÍPIOS (dropdown)
@@ -240,7 +246,7 @@ function atualizarTabelaDados() {
           <td>${i.votos2014.toLocaleString("pt-BR")}</td>
           <td>${i.votos2018.toLocaleString("pt-BR")}</td>
           <td>${formatSigned(i.variacaoAbs)}</td>
-          <td>${formatSigned(i.variacaoPerc.toFixed(2).replace(".", ","))}%</td>
+          <td>${formatSigned(i.variacaoPerc, 2)}%</td>
         </tr>
       `);
     });
@@ -250,8 +256,6 @@ function atualizarTabelaDados() {
   document.getElementById("info-paginacao").textContent = `Página ${paginaAtual} de ${tot}`;
   document.getElementById("btn-anterior").disabled = paginaAtual === 1;
   document.getElementById("btn-proximo").disabled  = paginaAtual === tot;
-
-  function formatSigned(v) { return v > 0 ? `+${v}` : `${v}`; }
 }
 
 /* =========================================================
@@ -374,7 +378,7 @@ function atualizarTabelaProjecao() {
         <td>${i.votos2018.toLocaleString("pt-BR")}</td>
         <td contenteditable="true" class="peso-edit" data-mun="${i.municipio}">${i.peso.toFixed(2).replace(".", ",")}</td>
         <td contenteditable="true" class="proj-edit ${classeManual}" data-mun="${i.municipio}">${i.votosProjetados.toLocaleString("pt-BR")}</td>
-        <td class="diferenca-valor">+${i.diferenca.toLocaleString("pt-BR")}</td>
+        <td class="diferenca-valor">${formatSigned(i.diferenca)}</td>
       </tr>
     `);
   });
