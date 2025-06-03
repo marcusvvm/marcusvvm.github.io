@@ -1,0 +1,154 @@
+/* Tema escuro aprimorado - Melhor contraste */
+[data-color-scheme="dark"] {
+  /* Cores de fundo mais escuras */
+  --color-background: rgba(12, 12, 16, 1);
+  --color-surface: rgba(22, 22, 28, 1);
+  
+  /* Texto com mais contraste */
+  --color-text: rgba(250, 250, 255, 1);
+  --color-text-secondary: rgba(200, 200, 210, 1);
+  
+  /* Cores primárias mais vibrantes */
+  --color-primary: rgba(55, 195, 210, 1);
+  --color-primary-hover: rgba(65, 205, 220, 1);
+  --color-primary-active: rgba(75, 215, 230, 1);
+  
+  /* Cores secundárias com melhor contraste */
+  --color-secondary: rgba(50, 50, 65, 0.6);
+  --color-secondary-hover: rgba(60, 60, 75, 0.7);
+  --color-secondary-active: rgba(70, 70, 85, 0.8);
+  
+  /* Bordas mais visíveis */
+  --color-border: rgba(70, 70, 90, 0.5);
+  --color-card-border: rgba(70, 70, 90, 0.4);
+  --color-card-border-inner: rgba(70, 70, 90, 0.3);
+  --button-border-secondary: rgba(70, 70, 90, 0.4);
+  --color-border-secondary: rgba(70, 70, 90, 0.4);
+  
+  /* Cores de status mais vibrantes */
+  --color-error: rgba(250, 80, 100, 1);
+  --color-success: rgba(80, 210, 160, 1);
+  --color-warning: rgba(255, 150, 80, 1);
+  --color-info: rgba(140, 170, 230, 1);
+  
+  /* Versões RGB para consistência */
+  --color-success-rgb: 80, 210, 160;
+  --color-error-rgb: 250, 80, 100;
+  --color-warning-rgb: 255, 150, 80;
+  --color-info-rgb: 140, 170, 230;
+}
+
+/* Estilos adicionais para elementos específicos */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-card-border);
+}
+
+/* Melhorias de contraste para tabelas */
+table th {
+  background-color: rgba(40, 40, 50, 0.8);
+  color: var(--color-text);
+}
+
+table tr:nth-child(even) {
+  background-color: rgba(30, 30, 40, 0.4);
+}
+
+table tr:hover {
+  background-color: rgba(50, 50, 65, 0.5);
+}
+
+/* Estilo para o indicador de valores manuais com melhor contraste */
+.valor-manual {
+  background-color: rgba(var(--color-warning-rgb), 0.2);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Estilo para a coluna de diferença de votos */
+.diferenca-valor {
+  color: rgba(80, 210, 120, 1);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Estilo para valores negativos nos KPIs */
+.valor-negativo {
+  color: rgba(240, 75, 75, 1) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Estilo para o ícone de BI */
+.bi-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  vertical-align: middle;
+}
+
+.bi-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--color-primary);
+  fill: transparent;
+  stroke-width: 1.5;
+  transition: transform 0.3s ease, stroke 0.3s ease;
+}
+
+h1:hover .bi-icon svg {
+  transform: scale(1.1);
+  stroke: var(--color-primary-hover);
+}
+
+.valor-manual:after {
+  color: rgba(var(--color-warning-rgb), 1);
+}
+
+/* Estilo para a área de informações de projeção */
+.projecao-info {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.projecao-info.info-warning {
+  background-color: rgba(var(--color-warning-rgb), 0.15);
+  border-color: rgba(var(--color-warning-rgb), 0.4);
+}
+
+/* Botões com melhor contraste */
+.btn--primary {
+  background-color: var(--color-primary);
+  color: rgba(10, 10, 15, 1);
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--button-border-secondary);
+}
+
+/* Melhorias para campos de entrada */
+input, select {
+  background-color: rgba(30, 30, 40, 1);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+/* Melhoria no contraste para elementos de navegação */
+.tabs-header {
+  border-bottom-color: var(--color-border);
+}
+
+.tab-link {
+  color: var(--color-text-secondary);
+}
+
+.tab-link.active {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}

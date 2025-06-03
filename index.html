@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-color-scheme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel BI - Análise Eleitoral Lissauer Vieira (2014-2018)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dark-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <h1>
+                <span class="bi-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <path d="M7 7v10M11 11v6M15 7v10M19 7v10"></path>
+                    </svg>
+                </span>
+                Painel BI - Análise Eleitoral Lissauer Vieira (2014-2018)
+            </h1>
+            <h3>Deputado Estadual - Goiás</h3>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Filtro Global -->
+        <div class="filtro-global">
+            <label for="filtro-municipio">Filtrar por Município:</label>
+            <select id="filtro-municipio" class="form-control">
+                <option value="todos">Todos os municípios</option>
+                <!-- Opções serão preenchidas via JavaScript -->
+            </select>
+        </div>
+
+        <!-- KPIs -->
+        <section class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1FB8CD" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <h4>Total de votos 2014</h4>
+                <div class="kpi-value" id="kpi-votos-2014">29.676</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5D878F" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <h4>Total de votos 2018</h4>
+                <div class="kpi-value" id="kpi-votos-2018">37.550</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5D878F" stroke-width="2">
+                        <line x1="12" y1="19" x2="12" y2="5"/>
+                        <polyline points="5,12 12,5 19,12"/>
+                    </svg>
+                </div>
+                <h4>Crescimento absoluto</h4>
+                <div class="kpi-value" id="kpi-cresc-absoluto">7.874</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D2BA4C" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                </div>
+                <h4>Crescimento percentual</h4>
+                <div class="kpi-value" id="kpi-cresc-percentual">26,53%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5D878F" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                        <text x="12" y="12" font-size="8" text-anchor="middle" fill="#5D878F">+</text>
+                    </svg>
+                </div>
+                <h4>Municípios em crescimento</h4>
+                <div class="kpi-value" id="kpi-municipios-crescimento">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DB4545" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                        <text x="12" y="12" font-size="12" text-anchor="middle" fill="#DB4545">−</text>
+                    </svg>
+                </div>
+                <h4>Municípios em queda</h4>
+                <div class="kpi-value" id="kpi-municipios-queda">0</div>
+            </div>
+        </section>
+
+        <!-- Abas -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="visao-geral">Visão Geral</button>
+                <button class="tab-btn" data-tab="crescimento">Crescimento</button>
+                <button class="tab-btn" data-tab="dados-completos">Dados Completos</button>
+                <button class="tab-btn" data-tab="projecao">Projeção 2026</button>
+            </div>
+
+            <!-- Conteúdo das Abas -->
+            <div class="tab-content active" id="visao-geral">
+                <h3>Top 10 Municípios em Número de Votos</h3>
+                <div class="chart-container">
+                    <canvas id="chart-visao-geral"></canvas>
+                </div>
+            </div>
+
+            <div class="tab-content" id="crescimento">
+                <div class="crescimento-charts">
+                    <div class="chart-section">
+                        <h3>Top 10 Municípios com Maior Crescimento Absoluto</h3>
+                        <div class="chart-container" id="chart-crescimento-container">
+                            <canvas id="chart-crescimento"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-section">
+                        <h3>Top 10 Municípios com Maior Queda Absoluta</h3>
+                        <div class="chart-container" id="chart-queda-container">
+                            <canvas id="chart-queda"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="dados-completos">
+                <div class="table-filters">
+                    <div class="search-container">
+                        <input type="text" id="busca-municipio" class="form-control" placeholder="Buscar município...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button id="btn-todos" class="btn btn--secondary active">Todos</button>
+                        <button id="btn-crescimento" class="btn btn--secondary">Apenas Crescimento</button>
+                        <button id="btn-queda" class="btn btn--secondary">Apenas Queda</button>
+                        <button id="btn-sem-votos" class="btn btn--secondary">Sem Votos em 2018</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="tabela-dados">
+                        <thead>
+                            <tr>
+                                <th data-sort="municipio">Município <span class="sort-icon">&#8645;</span></th>
+                                <th data-sort="votos2014">Votos 2014 <span class="sort-icon">&#8645;</span></th>
+                                <th data-sort="votos2018">Votos 2018 <span class="sort-icon">&#8645;</span></th>
+                                <th data-sort="variacaoAbs">Variação Absoluta <span class="sort-icon">&#8645;</span></th>
+                                <th data-sort="variacaoPerc">Variação Percentual <span class="sort-icon">&#8645;</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="paginacao">
+                    <button id="btn-anterior" class="btn btn--secondary">Anterior</button>
+                    <span id="info-paginacao">Página 1 de 1</span>
+                    <button id="btn-proximo" class="btn btn--secondary">Próximo</button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="projecao">
+                <div class="projecao-layout">
+                    <div class="projecao-main">
+                        <div class="projecao-header">
+                            <div class="projecao-input">
+                                <label for="projecao-total">Total de Votos Projetados para 2026:</label>
+                                <input type="number" id="projecao-total" class="form-control" value="50000" min="0">
+                            </div>
+                            <button id="btn-aplicar-projecao" class="btn btn--primary">Aplicar Projeção</button>
+                            <div id="info-projecao" class="projecao-info">Votos totais: 50000</div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table id="tabela-projecao">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="municipio">Município <span class="sort-icon">&#8645;</span></th>
+                                        <th data-sort="votos2018">Votos 2018 <span class="sort-icon">&#8645;</span></th>
+                                        <th data-sort="peso">Peso <span class="sort-icon">&#8645;</span></th>
+                                        <th data-sort="votosProjetados">Votos Projetados 2026 <span class="sort-icon">&#8645;</span></th>
+                                        <th data-sort="diferenca">Votos necessários
+                                             <span class="sort-icon">&#8645;</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados serão inseridos via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="paginacao">
+                            <button id="btn-anterior-projecao" class="btn btn--secondary">Anterior</button>
+                            <span id="info-paginacao-projecao">Página 1 de 1</span>
+                            <button id="btn-proximo-projecao" class="btn btn--secondary">Próximo</button>
+                        </div>
+                    </div>
+                    
+                    <div class="metodologia-panel">
+                        <h4>Metodologia de Cálculo</h4>
+                        <div class="metodologia-content">
+                            <p>Esta projeção utiliza os pesos eleitorais de 2018 para distribuir proporcionalmente os votos de 2026. O cálculo funciona da seguinte forma:</p>
+                            <ol>
+                                <li><strong>Cálculo do peso:</strong> Determina-se a participação percentual de cada município baseada nos votos de 2018</li>
+                                <li><strong>Distribuição proporcional:</strong> A projeção total é distribuída proporcionalmente pelos pesos calculados</li>
+                                <li><strong>Ajuste de arredondamento:</strong> Diferenças de arredondamento são ajustadas automaticamente</li>
+                                <li><strong>Edição manual:</strong> Valores podem ser editados manualmente, recalculando o restante automaticamente</li>
+                                <li><strong>Garantia de consistência:</strong> O sistema garante que a soma sempre bata com o total projetado</li>
+                            </ol>
+                            <div class="metodologia-formula">
+                                <strong>Fórmula:</strong><br>
+                                Peso = (Votos 2018 / Total 2018) × 100<br>
+                                Projeção = (Peso / 100) × Total Projetado
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Painel BI - Análise Eleitoral Lissauer Vieira (2014-2018) | Dados Eleitorais de Goiás</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
