@@ -127,24 +127,22 @@ function atualizarKPIs() {
   function setKpi(id, v) { 
     const element = document.getElementById(id);
     element.textContent = v.toLocaleString("pt-BR");
-    
-    // Se for um dos KPIs de crescimento e o valor for negativo, aplicar classe para texto vermelho
-    if ((id === "kpi-cresc-absoluto") && v < 0) {
-      element.classList.add("valor-negativo");
+    // Se for o KPI de crescimento absoluto, negativo, e um município estiver selecionado, aplica classe vermelha
+    if (id === "kpi-cresc-absoluto" && municipioFiltrado !== "todos" && v < 0) {
+      element.classList.add("kpi-negativo");
     } else {
-      element.classList.remove("valor-negativo");
+      element.classList.remove("kpi-negativo");
     }
   }
   
   function setKpiPct(id, p) { 
     const element = document.getElementById(id);
     element.textContent = `${p.toFixed(2).replace(".", ",")}%`;
-    
-    // Se for um dos KPIs de crescimento percentual e o valor for negativo, aplicar classe para texto vermelho
-    if ((id === "kpi-cresc-percentual") && p < 0) {
-      element.classList.add("valor-negativo");
+    // Se for o KPI de crescimento percentual, negativo, e um município estiver selecionado, aplica classe vermelha
+    if (id === "kpi-cresc-percentual" && municipioFiltrado !== "todos" && p < 0) {
+      element.classList.add("kpi-negativo");
     } else {
-      element.classList.remove("valor-negativo");
+      element.classList.remove("kpi-negativo");
     }
   }
   
@@ -357,10 +355,31 @@ function calcularProjecao() {
 
 function atualizarTabelaProjecao() {
   const ord = [...dadosProjecao].sort((a, b) => {
-    const vA = a[ordemAtualProjecao.coluna], vB = b[ordemAtualProjecao.coluna];
-    if (ordemAtualProjecao.coluna === "municipio")
-      return ordemAtualProjecao.direcao === "asc" ? vA.localeCompare(vB, "pt-BR") : vB.localeCompare(vA, "pt-BR");
-    return ordemAtualProjecao.direcao === "asc" ? vA - vB : vB - vA;
+    const col = ordemAtualProjecao.coluna;
+    const dir = ordemAtualProjecao.direcao;
+    const vA = a[col];
+    const vB = b[col];
+
+    let comparison = 0;
+    // Primary sort
+    if (col === "municipio") { // Municipio name is always string
+      comparison = vA.localeCompare(vB, "pt-BR");
+    } else if (typeof vA === 'number' && typeof vB === 'number') { // For numeric columns
+      comparison = vA - vB;
+    } else { // Fallback for mixed types or unexpected types, treat as equal for primary sort
+      comparison = String(vA).localeCompare(String(vB), "pt-BR"); // Default to string comparison if types are mixed or not directly comparable as numbers
+    }
+
+    // Apply direction
+    if (dir === "desc") {
+      comparison *= -1;
+    }
+
+    // Secondary sort by municipio name (ascending) if primary sort keys are equal and primary sort was not municipio
+    if (comparison === 0 && col !== "municipio") {
+      return a.municipio.localeCompare(b.municipio, "pt-BR");
+    }
+    return comparison;
   });
 
   const tbody = document.querySelector("#tabela-projecao tbody");
@@ -368,29 +387,28 @@ function atualizarTabelaProjecao() {
 
   const ini = (paginaAtualProjecao - 1) * itensPorPaginaProjecao;
   const fim = ini + itensPorPaginaProjecao;
-  ord.slice(ini, fim).forEach(i => {
-    // Adicionar classes para destacar valores manuais
-    const classeManual = i.manual ? "valor-manual" : "";
-    
+  ord.slice(ini, fim).forEach(item => {
     tbody.insertAdjacentHTML("beforeend", `
       <tr>
-        <td>${i.municipio}</td>
-        <td>${i.votos2018.toLocaleString("pt-BR")}</td>
-        <td contenteditable="true" class="peso-edit" data-mun="${i.municipio}">${i.peso.toFixed(2).replace(".", ",")}</td>
-        <td contenteditable="true" class="proj-edit ${classeManual}" data-mun="${i.municipio}">${i.votosProjetados.toLocaleString("pt-BR")}</td>
-        <td class="diferenca-valor">${formatSigned(i.diferenca)}</td>
+        <td>${item.municipio}</td>
+        <td>${item.votos2018.toLocaleString("pt-BR")}</td>
+        <td contenteditable="true" class="celula-editavel proj-edit" data-mun="${item.municipio}" data-campo="peso">${item.peso.toFixed(2).replace('.', ',')}</td>
+        <td contenteditable="true" class="celula-editavel proj-edit" data-mun="${item.municipio}" data-campo="votosProjetados">${item.votosProjetados.toLocaleString("pt-BR")}</td>
+        <td class="projecao-votos-necessarios">${item.diferenca >= 0 ? "+" : "-"}${Math.abs(item.diferenca).toLocaleString("pt-BR")}</td>
       </tr>
     `);
   });
 
-  document.querySelectorAll(".peso-edit").forEach(c => {
+  document.querySelectorAll('.proj-edit[data-campo="peso"]').forEach(c => {
     c.onblur = atualizaPorPeso;
     c.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); c.blur(); } };
   });
-  document.querySelectorAll(".proj-edit").forEach(c => {
+  document.querySelectorAll('.proj-edit[data-campo="votosProjetados"]').forEach(c => {
     c.onblur = atualizaPorVotos;
     c.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); c.blur(); } };
   });
+
+
 
   const tot = Math.ceil(dadosProjecao.length / itensPorPaginaProjecao) || 1;
   document.getElementById("info-paginacao-projecao").textContent = `Página ${paginaAtualProjecao} de ${tot}`;
@@ -406,6 +424,16 @@ function atualizaPorPeso(e) {
   
   // Valor original antes da edição
   const valorOriginal = item.peso;
+
+  // Se o novo valor for igual ao original (com uma pequena tolerância para floats), não faz nada
+  if (Math.abs(novo - valorOriginal) < 0.001) {
+    // Apenas para garantir que o texto na célula esteja formatado corretamente se o usuário digitou algo como '10' em vez de '10,00'
+    e.target.textContent = valorOriginal.toFixed(2).replace(".", ",");
+    return;
+  }
+  
+  // Marcar que este peso foi editado manualmente (se necessário para lógica futura)
+  // item.manualPeso = true; // Descomentar se precisar desta flag
   
   // Atualizar o peso
   item.peso = novo;
@@ -480,6 +508,13 @@ function atualizaPorVotos(e) {
   
   // Valor original antes da edição
   const valorOriginal = item.votosProjetados;
+
+  // Se o novo valor for igual ao original, não faz nada
+  if (novo === valorOriginal) {
+    // Apenas para garantir que o texto na célula esteja formatado corretamente se o usuário digitou algo como '1000' em vez de '1.000'
+    e.target.textContent = valorOriginal.toLocaleString("pt-BR");
+    return;
+  }
   
   // Delta entre o valor manual e o original
   const delta = novo - valorOriginal;
@@ -735,12 +770,31 @@ function atualizarGraficos() {
 function configurarAbas() {
   const tabs = document.querySelectorAll(".tab-btn");
   const panes = document.querySelectorAll(".tab-content");
+  
+  // Inicializa o módulo Goiânia Detalhado se ainda não estiver inicializado
+  let goianiaDetalhadoInicializado = false;
+  
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
+      // Remover classe ativa de todas as abas e painéis
       tabs.forEach(t => t.classList.remove("active"));
       panes.forEach(p => p.classList.remove("active"));
+      
+      // Adicionar classe ativa à aba e painel clicados
       tab.classList.add("active");
-      document.getElementById(tab.dataset.tab).classList.add("active");
+      const tabId = tab.dataset.tab;
+      document.getElementById(tabId).classList.add("active");
+      
+      // Inicializar o módulo Goiânia Detalhado se for a primeira vez que a aba é acessada
+      if (tabId === 'goiania-detalhado' && !goianiaDetalhadoInicializado) {
+        try {
+          window.goianiaDetalhado = new GoianiaDetalhado();
+          goianiaDetalhadoInicializado = true;
+          console.log('Módulo Goiânia Detalhado inicializado com sucesso!');
+        } catch (error) {
+          console.error('Erro ao inicializar o módulo Goiânia Detalhado:', error);
+        }
+      }
     });
   });
 }
