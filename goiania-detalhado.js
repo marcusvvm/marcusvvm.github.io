@@ -351,7 +351,7 @@ class GoianiaDetalhado {
       // Listar seções do local selecionado
       const local = this.dadosAgrupados.local.get(itemSelecionado);
       if (local) {
-        itens = Array.from(local.secos)
+        itens = Array.from(local.secoes)
           .map(secao => {
             const chaveCompleta = `${local.zona} > ${itemSelecionado} > ${secao}`;
             const dadosSecao = this.dadosAgrupados.secao.get(chaveCompleta);
@@ -423,7 +423,6 @@ class GoianiaDetalhado {
       }
     } else if (nivelAtual === 'secao' && itemSelecionado) {
       const chaveCompleta = this.estado.historico
-        .filter(h => h.nivel === 'local')
         .map(h => h.item)
         .concat(itemSelecionado)
         .join(' > ');
