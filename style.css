@@ -33,6 +33,29 @@
   --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 
   /* RGB versions for opacity control */
+
+/* KPI negativo: texto vermelho */
+.kpi-negativo {
+  color: var(--color-error) !important;
+}
+
+/* Projeção: destaque em verde para votos necessários */
+.projecao-votos-necessarios {
+  color: forestgreen !important; /* Alterado para verde mais explícito */
+  font-weight: bold;
+}
+
+/* Projeção: campos editáveis */
+.celula-editavel {
+  background: rgba(50, 184, 198, 0.08);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--color-primary);
+  transition: background 0.2s, border 0.2s;
+}
+.celula-editavel:focus {
+  outline: 2px solid var(--color-primary);
+  background: rgba(50, 184, 198, 0.18);
+}
   --color-success-rgb: 50, 184, 198;
   --color-error-rgb: 255, 84, 89;
   --color-warning-rgb: 230, 129, 97;
@@ -1048,5 +1071,177 @@ footer {
   .projecao-header {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* Estilos para o módulo Goiânia Detalhado */
+.goiania-detalhado-container {
+  padding: 20px;
+}
+
+.filtro-ano {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filtro-ano label {
+  font-weight: bold;
+  margin: 0;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  align-items: center;
+}
+
+.breadcrumb-item {
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.breadcrumb-item.active {
+  color: var(--color-text);
+  font-weight: bold;
+  cursor: default;
+  background-color: transparent;
+}
+
+.breadcrumb-separator {
+  color: var(--color-text-muted);
+  margin: 0 5px;
+}
+
+.goiania-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.grafico-container {
+  background: var(--color-bg-card);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.estatisticas-painel {
+  background: var(--color-bg-card);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.estatisticas-painel h3 {
+  margin: 0 0 15px 0;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+}
+
+.estatisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.estatistica-card {
+  background: var(--color-bg-secondary);
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.estatistica-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.estatistica-titulo {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.estatistica-valor {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.detalhes-lista {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.detalhe-item {
+  padding: 10px;
+  margin-bottom: 5px;
+  background: var(--color-bg-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detalhe-item:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.detalhe-item .valor {
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.sem-dados {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 20px;
+  font-style: italic;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .goiania-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .estatisticas-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .estatisticas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detalhes-lista {
+    max-height: 300px;
   }
 }
