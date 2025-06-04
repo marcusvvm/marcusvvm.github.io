@@ -108,6 +108,7 @@
                 <button class="tab-btn" data-tab="crescimento">Crescimento</button>
                 <button class="tab-btn" data-tab="dados-completos">Dados Completos</button>
                 <button class="tab-btn" data-tab="projecao">Projeção 2026</button>
+                <button class="tab-btn" data-tab="goiania-detalhado">Goiânia Detalhado</button>
             </div>
 
             <!-- Conteúdo das Abas -->
@@ -229,6 +230,64 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Nova Aba: Goiânia Detalhado -->
+            <div class="tab-content" id="goiania-detalhado">
+                <div class="goiania-detalhado-container">
+                    <!-- Seletor de Ano -->
+                    <div class="filtro-ano">
+                        <label for="ano-selecionado">Ano:</label>
+                        <select id="ano-selecionado" class="form-control">
+                            <option value="2014">2014</option>
+                            <option value="2018" selected>2018</option>
+                        </select>
+                    </div>
+
+                    <!-- Breadcrumb de Navegação -->
+                    <div class="breadcrumb" id="breadcrumb">
+                        <span class="breadcrumb-item active" data-nivel="zona">Zonas Eleitorais</span>
+                    </div>
+
+                    <div class="goiania-layout">
+                        <!-- Gráfico de Pizza -->
+                        <div class="grafico-container">
+                            <div class="chart-container">
+                                <canvas id="grafico-pizza"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Painel de Estatísticas -->
+                        <div class="estatisticas-painel">
+                            <h3>Estatísticas do Local</h3>
+                            <div class="estatisticas-grid">
+                                <div class="estatistica-card">
+                                    <div class="estatistica-titulo">Aptos a Votar</div>
+                                    <div class="estatistica-valor" id="estatistica-aptos">-</div>
+                                </div>
+                                <div class="estatistica-card">
+                                    <div class="estatistica-titulo">Comparecimento</div>
+                                    <div class="estatistica-valor" id="estatistica-comparecimento">-</div>
+                                </div>
+                                <div class="estatistica-card">
+                                    <div class="estatistica-titulo">Abstenções</div>
+                                    <div class="estatistica-valor" id="estatistica-abstencoes">-</div>
+                                </div>
+                                <div class="estatistica-card">
+                                    <div class="estatistica-titulo">Votos no Candidato</div>
+                                    <div class="estatistica-valor" id="estatistica-votos">-</div>
+                                </div>
+                                <div class="estatistica-card">
+                                    <div class="estatistica-titulo">% de Votos</div>
+                                    <div class="estatistica-valor" id="estatistica-porcentagem">-</div>
+                                </div>
+                            </div>
+                            <div class="detalhes-lista" id="detalhes-lista">
+                                <!-- Lista de itens (zonas, locais ou seções) será preenchida via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -239,5 +298,6 @@
     </footer>
 
     <script src="app.js"></script>
+    <script src="goiania-detalhado.js"></script>
 </body>
 </html>
