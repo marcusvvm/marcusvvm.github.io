@@ -99,6 +99,23 @@
                 <h4>Municípios em queda</h4>
                 <div class="kpi-value" id="kpi-municipios-queda">0</div>
             </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#888888" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                        <text x="12" y="12" font-size="12" text-anchor="middle" fill="#888888">0</text>
+                    </svg>
+                </div>
+                <h4>Municípios sem votos</h4>
+                <div class="kpi-value-container">
+                    <div class="kpi-value" id="kpi-municipios-sem-votos">0</div>
+                    <div class="kpi-year-toggle">
+                        <button class="year-toggle-btn active" data-year="2018">2018</button>
+                        <button class="year-toggle-btn" data-year="2014">2014</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Abas -->
@@ -108,7 +125,6 @@
                 <button class="tab-btn" data-tab="crescimento">Crescimento</button>
                 <button class="tab-btn" data-tab="dados-completos">Dados Completos</button>
                 <button class="tab-btn" data-tab="projecao">Projeção 2026</button>
-                <button class="tab-btn" data-tab="goiania-detalhado">Goiânia Detalhado</button>
             </div>
 
             <!-- Conteúdo das Abas -->
@@ -145,7 +161,13 @@
                         <button id="btn-todos" class="btn btn--secondary active">Todos</button>
                         <button id="btn-crescimento" class="btn btn--secondary">Apenas Crescimento</button>
                         <button id="btn-queda" class="btn btn--secondary">Apenas Queda</button>
-                        <button id="btn-sem-votos" class="btn btn--secondary">Sem Votos em 2018</button>
+                        <div class="filter-year-toggle">
+                            <button id="btn-sem-votos" class="btn btn--secondary">Sem Votos em </button>
+                            <div class="year-toggle-buttons">
+                                <button class="year-toggle-btn filter-year-btn active" data-year="2018">2018</button>
+                                <button class="year-toggle-btn filter-year-btn" data-year="2014">2014</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -231,62 +253,6 @@
                 </div>
             </div>
 
-            <!-- Nova Aba: Goiânia Detalhado -->
-            <div class="tab-content" id="goiania-detalhado">
-                <div class="goiania-detalhado-container">
-                    <!-- Seletor de Ano -->
-                    <div class="filtro-ano">
-                        <label for="ano-selecionado">Ano:</label>
-                        <select id="ano-selecionado" class="form-control">
-                            <option value="2014">2014</option>
-                            <option value="2018" selected>2018</option>
-                        </select>
-                    </div>
-
-                    <!-- Breadcrumb de Navegação -->
-                    <div class="breadcrumb" id="breadcrumb">
-                        <span class="breadcrumb-item active" data-nivel="zona">Zonas Eleitorais</span>
-                    </div>
-
-                    <div class="goiania-layout">
-                        <!-- Gráfico de Pizza -->
-                        <div class="grafico-container">
-                            <div class="chart-container">
-                                <canvas id="grafico-pizza"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Painel de Estatísticas -->
-                        <div class="estatisticas-painel">
-                            <h3>Estatísticas do Local</h3>
-                            <div class="estatisticas-grid">
-                                <div class="estatistica-card">
-                                    <div class="estatistica-titulo">Aptos a Votar</div>
-                                    <div class="estatistica-valor" id="estatistica-aptos">-</div>
-                                </div>
-                                <div class="estatistica-card">
-                                    <div class="estatistica-titulo">Comparecimento</div>
-                                    <div class="estatistica-valor" id="estatistica-comparecimento">-</div>
-                                </div>
-                                <div class="estatistica-card">
-                                    <div class="estatistica-titulo">Abstenções</div>
-                                    <div class="estatistica-valor" id="estatistica-abstencoes">-</div>
-                                </div>
-                                <div class="estatistica-card">
-                                    <div class="estatistica-titulo">Votos no Candidato</div>
-                                    <div class="estatistica-valor" id="estatistica-votos">-</div>
-                                </div>
-                                <div class="estatistica-card">
-                                    <div class="estatistica-titulo">% de Votos</div>
-                                    <div class="estatistica-valor" id="estatistica-porcentagem">-</div>
-                                </div>
-                            </div>
-                            <div class="detalhes-lista" id="detalhes-lista">
-                                <!-- Lista de itens (zonas, locais ou seções) será preenchida via JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </main>
@@ -298,6 +264,5 @@
     </footer>
 
     <script src="app.js"></script>
-    <script src="goiania-detalhado.js"></script>
 </body>
 </html>
