@@ -40,6 +40,15 @@ let termoBuscaAtual      = "";
 /* =========================================================
  *  INICIALIZAÇÃO
  * ========================================================= */
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.year-toggle-btn');
+    if (btn) {
+        e.preventDefault();
+        const year = parseInt(btn.dataset.year);
+        atualizarKPIMunicipiosSemVotos(year);
+    }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const resp = await fetch("municipios_dados.json");
@@ -49,6 +58,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     processarDados();
     inicializarFiltroMunicipios();
     atualizarKPIs();
+    atualizarKPIMunicipiosSemVotos(2018); // Inicializa o KPI de municípios sem votos
+    
+    // Inicializa o filtro "Sem Votos" com 2018 como padrão
+    atualizarAnoSemVotos(2018);
+    
     inicializarTabelaDados();
     inicializarTabelaProjecao();
     inicializarGraficos();
@@ -104,6 +118,35 @@ function inicializarFiltroMunicipios() {
 /* =========================================================
  *  KPIs (cartões)
  * ========================================================= */
+
+// Conta quantos municípios não tiveram votos no ano especificado
+function contarMunicipiosSemVotos(ano) {
+    if (!dadosCombinados || dadosCombinados.length === 0) return 0;
+    
+    return dadosCombinados.filter(municipio => {
+        const votos = ano === 2014 ? municipio.votos2014 : municipio.votos2018;
+        return votos === 0 || votos === '0' || !votos;
+    }).length;
+}
+
+// Atualiza o KPI de municípios sem votos
+function atualizarKPIMunicipiosSemVotos(ano = 2018) {
+    const count = contarMunicipiosSemVotos(ano);
+    const element = document.getElementById('kpi-municipios-sem-votos');
+    if (element) {
+        element.textContent = count.toLocaleString('pt-BR');
+    }
+    
+    // Atualiza o estado dos botões de ano
+    document.querySelectorAll('.year-toggle-btn').forEach(btn => {
+        if (parseInt(btn.dataset.year) === ano) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
 function atualizarKPIs() {
   if (municipioFiltrado === "todos") {
     setKpi("kpi-votos-2014", dadosEleitorais.total_2014);
@@ -193,10 +236,63 @@ function inicializarTabelaDados() {
 
 function setFiltroAtivo(tipo) {
   filtroAtual = tipo;
-  document.querySelectorAll(".filter-buttons .btn").forEach(b => b.classList.remove("active"));
-  document.getElementById(`btn-${tipo}`).classList.add("active");
+  
+  // Remove a classe 'active' de todos os botões de filtro
+  document.querySelectorAll(".filter-buttons .btn, .filter-year-toggle .filter-year-btn").forEach(b => b.classList.remove("active"));
+  
+  // Adiciona a classe 'active' apenas ao botão de filtro clicado
+  const btnFiltro = document.getElementById(`btn-${tipo}`);
+  if (btnFiltro) {
+    btnFiltro.classList.add("active");
+    
+    // Se for o filtro "sem-votos", ativa o botão do ano correspondente
+    if (tipo === 'sem-votos') {
+      const btnAnoAtivo = document.querySelector(`.filter-year-btn[data-year="${semVotosAno}"]`);
+      if (btnAnoAtivo) {
+        btnAnoAtivo.classList.add('active');
+      }
+    }
+  }
+  
   aplicarFiltros(termoBuscaAtual);
 }
+
+// Variável para armazenar o ano selecionado no filtro "Sem Votos"
+let semVotosAno = 2018;
+
+// Atualiza o ano selecionado no filtro "Sem Votos"
+function atualizarAnoSemVotos(ano) {
+    semVotosAno = ano;
+    const displayElement = document.querySelector('#btn-sem-votos .year-display');
+    if (displayElement) {
+        displayElement.textContent = ano;
+    }
+    
+    // Atualiza a classe ativa nos botões de ano
+    document.querySelectorAll('.filter-year-btn').forEach(btn => {
+        if (parseInt(btn.dataset.year) === ano) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Reaplica os filtros se o filtro ativo for "sem-votos"
+    if (filtroAtual === 'sem-votos') {
+        aplicarFiltros(termoBuscaAtual);
+    }
+}
+
+// Adiciona manipulador de eventos para os botões de ano do filtro "Sem Votos"
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.filter-year-btn');
+    if (btn) {
+        e.preventDefault();
+        e.stopPropagation(); // Impede que o evento se propague para o botão pai
+        const year = parseInt(btn.dataset.year);
+        atualizarAnoSemVotos(year);
+    }
+});
 
 function aplicarFiltros(buscaTxt = "") {
   let arr = [...dadosCombinados];
@@ -208,9 +304,15 @@ function aplicarFiltros(buscaTxt = "") {
   }
 
   switch (filtroAtual) {
-    case "crescimento": arr = arr.filter(i => i.variacaoAbs > 0); break;
-    case "queda":       arr = arr.filter(i => i.variacaoAbs < 0); break;
-    case "sem-votos":   arr = arr.filter(i => i.votos2018 === 0); break;
+    case "crescimento": 
+      arr = arr.filter(i => i.variacaoAbs > 0); 
+      break;
+    case "queda":       
+      arr = arr.filter(i => i.variacaoAbs < 0); 
+      break;
+    case "sem-votos":   
+      arr = arr.filter(i => i[`votos${semVotosAno}`] === 0); 
+      break;
   }
 
   arr.sort((a, b) => {
@@ -418,60 +520,153 @@ function atualizarTabelaProjecao() {
 
 function atualizaPorPeso(e) {
   const mun = e.target.dataset.mun;
-  const novo = parseFloat(e.target.textContent.replace(",", ".")) || 0;
+  const novoPeso = parseFloat(e.target.textContent.replace(".", "").replace(",", ".")) || 0;
   const item = dadosProjecao.find(i => i.municipio === mun);
   if (!item) return;
   
   // Valor original antes da edição
-  const valorOriginal = item.peso;
-
-  // Se o novo valor for igual ao original (com uma pequena tolerância para floats), não faz nada
-  if (Math.abs(novo - valorOriginal) < 0.001) {
-    // Apenas para garantir que o texto na célula esteja formatado corretamente se o usuário digitou algo como '10' em vez de '10,00'
-    e.target.textContent = valorOriginal.toFixed(2).replace(".", ",");
+  const pesoAnterior = item.peso;
+  
+  // Se o novo peso for inválido, restaurar o valor anterior
+  if (isNaN(novoPeso) || novoPeso < 0) {
+    e.target.textContent = pesoAnterior.toFixed(2).replace(".", ",");
     return;
   }
   
-  // Marcar que este peso foi editado manualmente (se necessário para lógica futura)
-  // item.manualPeso = true; // Descomentar se precisar desta flag
-  
-  // Atualizar o peso
-  item.peso = novo;
-  
-  // Calcular os novos votos projetados baseado no peso
-  const votosProjetados = Math.round(valorProjecao * novo / 100);
-  
-  // Se o valor projetado mudou significativamente, marcamos como manual
-  if (Math.abs(votosProjetados - item.votosProjetados) > 0) {
-    item.votosProjetados = votosProjetados;
-    item.manual = true;
-    temValoresManuais = true;
-    
-    // Recalcular a diferença entre votos projetados e votos 2018
-    item.diferenca = votosProjetados - item.votos2018;
-    
-    // Recalcular o novo total, similar à função atualizaPorVotos
-    novoTotalProjecao = valorProjecao;
-    
-    // Verificar se há outros valores manuais
-    let somaValoresManuais = dadosProjecao.reduce((sum, i) => {
-      if (i.manual) {
-        return sum + i.votosProjetados;
-      }
-      return sum;
-    }, 0);
-    
-    if (somaValoresManuais > valorProjecao) {
-      novoTotalProjecao = somaValoresManuais;
-    }
-    
-    // Atualizar a área de informações
-    atualizarInfoProjecao();
-  } else {
-    item.votosProjetados = votosProjetados;
+  // Verificar se houve mudança significativa
+  if (Math.abs(novoPeso - pesoAnterior) < 0.01) {
+    e.target.textContent = pesoAnterior.toFixed(2).replace(".", ",");
+    return;
   }
   
+  // Calcular a diferença de peso
+  const diferencaPeso = novoPeso - pesoAnterior;
+  const outrosItens = dadosProjecao.filter(i => i.municipio !== mun);
+  const somaOutrosPesos = outrosItens.reduce((sum, i) => sum + i.peso, 0);
+  
+  // Se não houver outros itens, não podemos ajustar
+  if (outrosItens.length === 0) {
+    e.target.textContent = pesoAnterior.toFixed(2).replace(".", ",");
+    return;
+  }
+  
+  // Se a soma dos outros pesos for zero, ajustamos os pesos existentes
+  if (somaOutrosPesos <= 0) {
+    // Se estamos tentando reduzir o peso de 100% para menos
+    if (item.peso === 100 && novoPeso < 100) {
+      // Distribui o peso restante igualmente entre os outros itens
+      const pesoRestante = 100 - novoPeso;
+      const pesoPorItem = pesoRestante / outrosItens.length;
+      
+      outrosItens.forEach(i => {
+        i.peso = pesoPorItem;
+      });
+      
+      // Atualiza o peso do item atual
+      item.peso = novoPeso;
+      
+      // Atualiza os votos projetados
+      atualizarVotosProjetados();
+      
+      // Atualiza a interface
+      item.manual = true;
+      temValoresManuais = true;
+      atualizarTabelaProjecao();
+      atualizarInfoProjecao();
+      return;
+    } else {
+      // Se não for um caso de redução de 100%, mantém o comportamento anterior
+      e.target.textContent = pesoAnterior.toFixed(2).replace(".", ",");
+      return;
+    }
+  }
+  
+  // Ajustar os outros pesos proporcionalmente
+  const fatorAjuste = (somaOutrosPesos - diferencaPeso) / somaOutrosPesos;
+  
+  // Atualizar o peso do item atual
+  item.peso = novoPeso;
+  item.manual = true;
+  temValoresManuais = true;
+  
+  // Atualizar os outros pesos
+  outrosItens.forEach(i => {
+    i.peso = Math.max(0, i.peso * fatorAjuste);
+  });
+  
+  // Recalcular os votos projetados com base nos novos pesos
+  const totalPeso = dadosProjecao.reduce((sum, i) => sum + i.peso, 0);
+  let somaVotos = 0;
+  
+  // Primeiro passe: calcular votos projetados baseados nos pesos
+  dadosProjecao.forEach(i => {
+    i.votosProjetados = Math.round(valorProjecao * (i.peso / totalPeso));
+    somaVotos += i.votosProjetados;
+  });
+  
+  // Ajustar arredondamentos para bater o total exato
+  const diferenca = valorProjecao - somaVotos;
+  if (diferenca !== 0) {
+    // Ajustar os itens com maior resíduo primeiro
+    const itensParaAjuste = [...dadosProjecao]
+      .map((item, index) => ({
+        index,
+        residuo: (valorProjecao * (item.peso / totalPeso)) % 1
+      }))
+      .sort((a, b) => diferenca > 0 ? b.residuo - a.residuo : a.residuo - b.residuo);
+    
+    for (let i = 0; i < Math.abs(diferenca) && i < itensParaAjuste.length; i++) {
+      dadosProjecao[itensParaAjuste[i].index].votosProjetados += diferenca > 0 ? 1 : -1;
+    }
+  }
+  
+  // Atualizar diferenças e garantir que os pesos reflitam os votos arredondados
+  dadosProjecao.forEach(i => {
+    i.diferenca = i.votosProjetados - i.votos2018;
+    i.peso = (i.votosProjetados / valorProjecao) * 100;
+  });
+  
+  // Atualizar a tabela e informações
   atualizarTabelaProjecao();
+  atualizarInfoProjecao();
+}
+
+/**
+ * Atualiza a área de informações da projeção
+ */
+/**
+ * Atualiza os votos projetados com base nos pesos atuais
+ */
+function atualizarVotosProjetados() {
+  const totalPeso = dadosProjecao.reduce((sum, i) => sum + i.peso, 0);
+  let somaVotos = 0;
+  
+  // Primeiro passe: calcular votos projetados baseados nos pesos
+  dadosProjecao.forEach(i => {
+    i.votosProjetados = Math.round(valorProjecao * (i.peso / totalPeso));
+    somaVotos += i.votosProjetados;
+  });
+  
+  // Ajustar arredondamentos para bater o total exato
+  const diferenca = valorProjecao - somaVotos;
+  if (diferenca !== 0) {
+    // Ajustar os itens com maior resíduo primeiro
+    const itensParaAjuste = [...dadosProjecao]
+      .map((item, index) => ({
+        index,
+        residuo: (valorProjecao * (item.peso / totalPeso)) % 1
+      }))
+      .sort((a, b) => diferenca > 0 ? b.residuo - a.residuo : a.residuo - b.residuo);
+    
+    for (let i = 0; i < Math.abs(diferenca) && i < itensParaAjuste.length; i++) {
+      dadosProjecao[itensParaAjuste[i].index].votosProjetados += diferenca > 0 ? 1 : -1;
+    }
+  }
+  
+  // Atualizar diferenças
+  dadosProjecao.forEach(i => {
+    i.diferenca = i.votosProjetados - i.votos2018;
+  });
 }
 
 /**
@@ -502,123 +697,106 @@ function atualizarInfoProjecao() {
  */
 function atualizaPorVotos(e) {
   const mun = e.target.dataset.mun;
-  const novo = parseInt(e.target.textContent.replace(/\D/g, "")) || 0;
+  const novoVotos = parseInt(e.target.textContent.replace(/\D/g, "")) || 0;
   const item = dadosProjecao.find(i => i.municipio === mun);
   if (!item) return;
   
   // Valor original antes da edição
-  const valorOriginal = item.votosProjetados;
-
-  // Se o novo valor for igual ao original, não faz nada
-  if (novo === valorOriginal) {
-    // Apenas para garantir que o texto na célula esteja formatado corretamente se o usuário digitou algo como '1000' em vez de '1.000'
-    e.target.textContent = valorOriginal.toLocaleString("pt-BR");
+  const votosAnteriores = item.votosProjetados;
+  
+  // Se o novo valor for inválido ou igual ao anterior, restaurar o valor original
+  if (isNaN(novoVotos) || novoVotos < 0) {
+    e.target.textContent = votosAnteriores.toLocaleString("pt-BR");
     return;
   }
   
-  // Delta entre o valor manual e o original
-  const delta = novo - valorOriginal;
+  // Se não houve mudança, não faz nada
+  if (novoVotos === votosAnteriores) {
+    e.target.textContent = votosAnteriores.toLocaleString("pt-BR");
+    return;
+  }
   
-  // Atualizar o valor editado e marcar como manual
-  item.votosProjetados = novo;
+  // Atualizar o item atual
+  item.votosProjetados = novoVotos;
   item.manual = true;
   temValoresManuais = true;
   
-  // Recalcular a diferença entre votos projetados e votos 2018
-  item.diferenca = novo - item.votos2018;
+  // Calcular a diferença entre o novo total e o total anterior
+  const somaVotosManuais = dadosProjecao
+    .filter(i => i.manual)
+    .reduce((sum, i) => sum + i.votosProjetados, 0);
   
-  // Calcular o novo total
-  novoTotalProjecao = valorProjecao;
-  if (novo > valorProjecao) {
-    // Se o valor manual excede o valor da projeção, ajustamos o total
-    novoTotalProjecao = valorProjecao + delta;
+  // Atualizar o total projetado se necessário
+  if (somaVotosManuais > valorProjecao) {
+    novoTotalProjecao = somaVotosManuais;
+  } else {
+    novoTotalProjecao = valorProjecao;
   }
   
-  // Verificar se há valores manuais adicionais que excedem a projeção
-  const somaValoresManuais = dadosProjecao.reduce((sum, i) => {
-    if (i.manual && i.municipio !== mun) {
-      return sum + i.votosProjetados;
-    }
-    return sum;
-  }, novo); // Começamos com o valor atual que acabou de ser editado
+  // Recalcular pesos para todos os itens
+  const itensNaoManuais = dadosProjecao.filter(i => !i.manual);
+  const somaVotosManuaisAtual = dadosProjecao
+    .filter(i => i.manual)
+    .reduce((sum, i) => sum + i.votosProjetados, 0);
   
-  // Se a soma dos valores manuais excede valorProjecao, ajustamos novoTotal
-  if (somaValoresManuais > valorProjecao) {
-    novoTotalProjecao = somaValoresManuais;
-  }
+  const votosRestantes = Math.max(0, novoTotalProjecao - somaVotosManuaisAtual);
   
-  // Atualizar o peso do município editado
-  item.peso = novoTotalProjecao ? (novo / novoTotalProjecao) * 100 : 0;
-  
-  // Recalcular os votos e pesos para os demais municípios
-  let somaPesosMunicipiosNaoEditados = 0;
-  let somaVotosMunicipiosEditados = 0;
-  
-  // Identificar municípios editados manualmente e somar seus pesos e votos
-  dadosProjecao.forEach(i => {
-    if (i.manual) {
-      somaVotosMunicipiosEditados += i.votosProjetados;
-    } else {
-      somaPesosMunicipiosNaoEditados += i.peso;
-    }
-  });
-  
-  // Recalcular os valores para municípios não editados
-  const valorRestante = novoTotalProjecao - somaVotosMunicipiosEditados;
-  
-  // Lista temporária para armazenar os novos valores com resíduos
-  const municipiosParaAjuste = [];
-  
-  dadosProjecao.forEach(i => {
-    if (!i.manual) {
-      // Recalcular o peso proporcional
-      const pesoAjustado = somaPesosMunicipiosNaoEditados > 0 ?
-        (i.peso / somaPesosMunicipiosNaoEditados) * 100 : 0;
-      
-      // Calcular o novo valor projetado
-      const votosProjetadosExato = valorRestante * pesoAjustado / 100;
-      const votosProjetadosArredondado = Math.round(votosProjetadosExato);
-      
-      i.votosProjetados = votosProjetadosArredondado;
-      i.peso = novoTotalProjecao ? (i.votosProjetados / novoTotalProjecao) * 100 : 0;
-      
-      // Recalcular a diferença entre votos projetados e votos 2018
-      i.diferenca = i.votosProjetados - i.votos2018;
-      
-      municipiosParaAjuste.push({
-        indice: dadosProjecao.indexOf(i),
-        residuo: votosProjetadosExato - votosProjetadosArredondado
-      });
-    }
-  });
-  
-  // Verificar se precisamos ajustar para que a soma bata exatamente com novoTotalProjecao
-  const somaTodosVotos = dadosProjecao.reduce((sum, i) => sum + i.votosProjetados, 0);
-  let diferencaFinal = novoTotalProjecao - somaTodosVotos;
-  
-  if (diferencaFinal !== 0 && municipiosParaAjuste.length > 0) {
-    // Ordenar por resíduo
-    municipiosParaAjuste.sort((a, b) => 
-      diferencaFinal > 0 ? b.residuo - a.residuo : a.residuo - b.residuo
-    );
+  if (itensNaoManuais.length > 0) {
+    // Calcular a soma dos pesos atuais para itens não manuais
+    const somaPesosAtuais = itensNaoManuais.reduce((sum, i) => sum + i.peso, 0);
     
-    // Distribuir a diferença
-    for (let i = 0; i < Math.abs(diferencaFinal) && i < municipiosParaAjuste.length; i++) {
-      const municipio = dadosProjecao[municipiosParaAjuste[i].indice];
-      municipio.votosProjetados += diferencaFinal > 0 ? 1 : -1;
-      municipio.peso = novoTotalProjecao ? (municipio.votosProjetados / novoTotalProjecao) * 100 : 0;
+    // Se não temos pesos definidos, distribuir igualmente
+    if (somaPesosAtuais <= 0) {
+      const pesoPadrao = 100 / itensNaoManuais.length;
+      itensNaoManuais.forEach(i => i.peso = pesoPadrao);
     }
+    
+    // Recalcular os votos para itens não manuais baseado nos pesos
+    let somaVotosNaoManuais = 0;
+    const novosVotosNaoManuais = [];
+    
+    // Primeiro passe: calcular votos baseados nos pesos
+    itensNaoManuais.forEach(i => {
+      const votos = Math.round(votosRestantes * (i.peso / 100));
+      novosVotosNaoManuais.push({ item: i, votos });
+      somaVotosNaoManuais += votos;
+    });
+    
+    // Ajustar arredondamentos para bater o total exato
+    const diferenca = votosRestantes - somaVotosNaoManuais;
+    if (diferenca !== 0 && novosVotosNaoManuais.length > 0) {
+      // Ordenar por resíduo para distribuir a diferença
+      const itensOrdenados = novosVotosNaoManuais
+        .map(({ item, votos }) => ({
+          item,
+          votos,
+          residuo: (votosRestantes * (item.peso / 100)) % 1
+        }))
+        .sort((a, b) => diferenca > 0 ? b.residuo - a.residuo : a.residuo - b.residuo);
+      
+      // Ajustar os itens com maior resíduo primeiro
+      for (let i = 0; i < Math.abs(diferenca) && i < itensOrdenados.length; i++) {
+        itensOrdenados[i].votos += diferenca > 0 ? 1 : -1;
+      }
+    }
+    
+    // Aplicar os votos calculados e atualizar pesos
+    novosVotosNaoManuais.forEach(({ item, votos }) => {
+      item.votosProjetados = Math.max(0, votos);
+      item.peso = (item.votosProjetados / novoTotalProjecao) * 100;
+    });
   }
   
-  // Verificar soma final para garantir que bate com novoTotalProjecao
-  const somaFinal = dadosProjecao.reduce((sum, i) => sum + i.votosProjetados, 0);
-  console.log(`Novo total: ${novoTotalProjecao}, Soma final: ${somaFinal}`);
+  // Atualizar diferenças e garantir consistência
+  dadosProjecao.forEach(i => {
+    i.diferenca = i.votosProjetados - i.votos2018;
+    // Garantir que o peso reflita os votos arredondados
+    i.peso = (i.votosProjetados / novoTotalProjecao) * 100;
+  });
   
-  // Atualizar a área de informações
-  atualizarInfoProjecao();
-  
-  // Atualizar a tabela
+  // Atualizar a tabela e informações
   atualizarTabelaProjecao();
+  atualizarInfoProjecao();
 }
 
 /* =========================================================
@@ -771,9 +949,6 @@ function configurarAbas() {
   const tabs = document.querySelectorAll(".tab-btn");
   const panes = document.querySelectorAll(".tab-content");
   
-  // Inicializa o módulo Goiânia Detalhado se ainda não estiver inicializado
-  let goianiaDetalhadoInicializado = false;
-  
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
       // Remover classe ativa de todas as abas e painéis
@@ -784,17 +959,6 @@ function configurarAbas() {
       tab.classList.add("active");
       const tabId = tab.dataset.tab;
       document.getElementById(tabId).classList.add("active");
-      
-      // Inicializar o módulo Goiânia Detalhado se for a primeira vez que a aba é acessada
-      if (tabId === 'goiania-detalhado' && !goianiaDetalhadoInicializado) {
-        try {
-          window.goianiaDetalhado = new GoianiaDetalhado();
-          goianiaDetalhadoInicializado = true;
-          console.log('Módulo Goiânia Detalhado inicializado com sucesso!');
-        } catch (error) {
-          console.error('Erro ao inicializar o módulo Goiânia Detalhado:', error);
-        }
-      }
     });
   });
 }
